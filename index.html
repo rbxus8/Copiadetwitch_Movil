@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twitch App – Flutter UI Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Roobert:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0e0e10;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .label {
+    color: #adadb8;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  /* ── PHONE SHELL ── */
+  .phone {
+    width: 320px;
+    border-radius: 44px;
+    background: #1f1f23;
+    border: 3px solid #2d2d35;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 0 1px #111;
+    position: relative;
+    animation: fadeUp .6s ease both;
+  }
+  .phone:nth-child(2) { animation-delay: .15s; }
+  .phone:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .notch {
+    background: #1f1f23;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-pill {
+    width: 90px; height: 10px;
+    background: #111;
+    border-radius: 6px;
+  }
+
+  /* STATUS BAR */
+  .statusbar {
+    background: #18181b;
+    padding: 4px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: #adadb8;
+    font-weight: 600;
+  }
+  .statusbar-icons { display: flex; gap: 6px; align-items: center; }
+  .bat { width: 20px; height: 10px; border: 1.5px solid #adadb8; border-radius: 2px; position: relative; }
+  .bat::after { content:''; position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:3px; height:5px; background:#adadb8; border-radius:0 2px 2px 0; }
+  .bat-fill { width: 70%; height: 100%; background: #00c851; border-radius: 1px; }
+
+  /* TOP NAV */
+  .topnav {
+    background: #18181b;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2d2d35;
+  }
+  .logo {
+    font-family: 'Roobert', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #9147ff;
+    letter-spacing: -1px;
+  }
+  .logo span { color: #fff; }
+  .nav-icons { display: flex; gap: 14px; align-items: center; }
+  .nav-icon {
+    width: 28px; height: 28px;
+    background: #2d2d35;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .nav-icon:hover { background: #9147ff; }
+  .nav-icon svg { width: 14px; height: 14px; fill: #adadb8; }
+
+  /* CATEGORY PILLS */
+  .pills {
+    background: #18181b;
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    border: 1.5px solid transparent;
+  }
+  .pill.active { background: #9147ff; color: #fff; }
+  .pill.inactive { background: #2d2d35; color: #adadb8; border-color: #2d2d35; }
+  .pill:hover { border-color: #9147ff; color: #bf94ff; }
+
+  /* STREAM CARDS */
+  .content { background: #0e0e10; padding: 14px 12px; display: flex; flex-direction: column; gap: 14px; }
+
+  .section-title {
+    font-family: 'Roobert', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .3px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content:'';
+    width: 3px; height: 14px;
+    background: #9147ff;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .stream-card {
+    background: #18181b;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    border: 1px solid #2d2d35;
+  }
+  .stream-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(145,71,255,.2); }
+
+  .stream-thumb {
+    width: 100%;
+    height: 130px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    overflow: hidden;
+  }
+  .thumb-g1 { background: linear-gradient(135deg, #1a0533, #6441a4, #9147ff); }
+  .thumb-g2 { background: linear-gradient(135deg, #0d2137, #1e4d6e, #00c9ff); }
+  .thumb-g3 { background: linear-gradient(135deg, #1a2a0d, #3d6b1a, #7ec832); }
+  .thumb-g4 { background: linear-gradient(135deg, #2d0d0d, #6e1a1a, #e63232); }
+
+  .live-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: #e91916;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+  .viewer-badge {
+    position: absolute;
+    bottom: 8px; left: 8px;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .viewer-dot { width: 6px; height: 6px; background: #e91916; border-radius: 50%; }
+
+  .stream-info {
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    border: 2px solid #9147ff;
+  }
+  .av1 { background: linear-gradient(135deg, #9147ff, #bf94ff); }
+  .av2 { background: linear-gradient(135deg, #00c9ff, #0066cc); }
+  .av3 { background: linear-gradient(135deg, #7ec832, #3d6b1a); }
+  .av4 { background: linear-gradient(135deg, #e63232, #6e1a1a); }
+
+  .stream-meta { flex: 1; }
+  .stream-title { font-size: 12px; font-weight: 600; color: #fff; margin-bottom: 2px; line-height: 1.4; }
+  .stream-user { font-size: 11px; color: #9147ff; font-weight: 600; }
+  .stream-game { font-size: 10px; color: #adadb8; }
+
+  /* BOTTOM NAV */
+  .bottomnav {
+    background: #18181b;
+    border-top: 1px solid #2d2d35;
+    padding: 10px 8px 14px;
+    display: flex;
+    justify-content: space-around;
+  }
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background .2s;
+  }
+  .nav-btn:hover { background: #2d2d35; }
+  .nav-btn.active svg { fill: #9147ff; }
+  .nav-btn svg { width: 20px; height: 20px; fill: #adadb8; }
+  .nav-btn span { font-size: 9px; color: #adadb8; font-weight: 600; }
+  .nav-btn.active span { color: #9147ff; }
+
+  /* SCREEN 2: PLAYER */
+  .player-screen { background: #0e0e10; }
+  .video-player {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #0d0d1a, #1a0533, #9147ff30);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    font-size: 48px;
+  }
+  .play-overlay {
+    position: absolute;
+    width: 56px; height: 56px;
+    background: rgba(145,71,255,.85);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 30px rgba(145,71,255,.6);
+  }
+  .play-overlay svg { width: 22px; height: 22px; fill: #fff; margin-left: 3px; }
+  .player-controls {
+    background: #18181b;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2d2d35;
+  }
+  .streamer-info-row { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .streamer-text .name { font-size: 13px; font-weight: 700; color: #fff; }
+  .streamer-text .game { font-size: 11px; color: #9147ff; }
+  .follow-btn {
+    background: #9147ff;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s;
+  }
+  .follow-btn:hover { background: #7b2fdb; }
+
+  .chat-area {
+    background: #0e0e10;
+    padding: 10px 12px;
+    height: 180px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .chat-msg { display: flex; gap: 6px; align-items: flex-start; }
+  .chat-name { font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .chat-text { font-size: 11px; color: #dedee3; line-height: 1.4; }
+  .chat-n1 { color: #9147ff; }
+  .chat-n2 { color: #00c9ff; }
+  .chat-n3 { color: #ff6b35; }
+  .chat-n4 { color: #7ec832; }
+  .chat-n5 { color: #ff3ea5; }
+
+  .chat-input-row {
+    background: #18181b;
+    border-top: 1px solid #2d2d35;
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chat-input {
+    flex: 1;
+    background: #2d2d35;
+    border: 1.5px solid #3a3a45;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 11px;
+    outline: none;
+  }
+  .chat-input::placeholder { color: #6e6e7a; }
+  .send-btn {
+    background: #9147ff;
+    border: none;
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .send-btn svg { width: 14px; height: 14px; fill: #fff; }
+
+  /* SCREEN 3: PROFILE */
+  .profile-screen { background: #0e0e10; }
+  .profile-header {
+    background: linear-gradient(180deg, #9147ff22 0%, #18181b 100%);
+    padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #2d2d35;
+  }
+  .profile-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9147ff, #bf94ff);
+    border: 3px solid #9147ff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(145,71,255,.4);
+  }
+  .profile-name { font-family: 'Roobert', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+  .profile-tag { font-size: 11px; color: #9147ff; font-weight: 600; }
+  .stats-row { display: flex; gap: 24px; margin-top: 4px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 16px; font-weight: 700; color: #fff; }
+  .stat-lbl { font-size: 9px; color: #adadb8; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+  .profile-content { padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .menu-item {
+    background: #18181b;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #2d2d35;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .menu-item:hover { border-color: #9147ff; }
+  .menu-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #2d2d35;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .menu-icon svg { width: 16px; height: 16px; fill: #9147ff; }
+  .menu-text { flex: 1; }
+  .menu-title { font-size: 12px; font-weight: 600; color: #fff; }
+  .menu-sub { font-size: 10px; color: #adadb8; }
+  .chevron svg { width: 12px; height: 12px; fill: #adadb8; }
+
+  /* INSTRUCTION PANEL */
+  .instructions {
+    width: 340px;
+    background: #18181b;
+    border: 1.5px solid #2d2d35;
+    border-radius: 20px;
+    padding: 24px;
+    animation: fadeUp .6s .4s ease both;
+    align-self: flex-start;
+  }
+  .inst-title {
+    font-family: 'Roobert', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .inst-sub { font-size: 12px; color: #adadb8; margin-bottom: 20px; }
+  .step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: #9147ff;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .step-desc { font-size: 11px; color: #adadb8; line-height: 1.5; }
+  .step-code {
+    background: #0e0e10;
+    border: 1px solid #2d2d35;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #bf94ff;
+    margin-top: 6px;
+    line-height: 1.6;
+  }
+  .divider { height: 1px; background: #2d2d35; margin: 16px 0; }
+
+  .screens-label {
+    font-family: 'Roobert', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 8px;
+    animation: fadeUp .4s ease both;
+  }
+  .screens-sub {
+    font-size: 12px;
+    color: #adadb8;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 24px;
+    animation: fadeUp .4s .1s ease both;
+  }
+</style>
+</head>
+<body>
+
+<div class="screens-label">🎮 Twitch App – Flutter UI Preview</div>
+<div class="screens-sub">Vista previa de las 3 pantallas principales · Diseño fiel al estilo Twitch</div>
+
+<!-- PHONE 1: HOME -->
+<div>
+  <div class="label">Pantalla 1 · Inicio</div>
+  <div class="phone">
+    <div class="notch"><div class="notch-pill"></div></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="statusbar-icons">
+        <span>WiFi</span>
+        <div class="bat"><div class="bat-fill"></div></div>
+      </div>
+    </div>
+    <div class="topnav">
+      <div class="logo">twitch</div>
+      <div class="nav-icons">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </div>
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="pills">
+      <div class="pill active">En vivo</div>
+      <div class="pill inactive">Seguidos</div>
+      <div class="pill inactive">Juegos</div>
+      <div class="pill inactive">IRL</div>
+      <div class="pill inactive">Esports</div>
+    </div>
+    <div class="content">
+      <div>
+        <div class="section-title">Canales recomendados</div>
+        <div class="stream-card">
+          <div class="stream-thumb thumb-g1">
+            🎮
+            <div class="live-badge">EN VIVO</div>
+            <div class="viewer-badge"><div class="viewer-dot"></div>42.5K</div>
+          </div>
+          <div class="stream-info">
+            <div class="avatar av1">N</div>
+            <div class="stream-meta">
+              <div class="stream-title">Ranked Challenger – Sub goal 500!</div>
+              <div class="stream-user">NinjaStreams</div>
+              <div class="stream-game">Fortnite · Battle Royale</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-thumb thumb-g2">
+          🏆
+          <div class="live-badge">EN VIVO</div>
+          <div class="viewer-badge"><div class="viewer-dot"></div>18.2K</div>
+        </div>
+        <div class="stream-info">
+          <div class="avatar av2">X</div>
+          <div class="stream-meta">
+            <div class="stream-title">Pro League Season 8 Finals</div>
+            <div class="stream-user">xQcOW</div>
+            <div class="stream-game">League of Legends · MOBA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="nav-btn active">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Inicio</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span>Buscar</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        <span>Seguidos</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Perfil</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 2: STREAM PLAYER -->
+<div>
+  <div class="label">Pantalla 2 · Reproductor</div>
+  <div class="phone player-screen">
+    <div class="notch"><div class="notch-pill"></div></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="statusbar-icons">
+        <span>WiFi</span>
+        <div class="bat"><div class="bat-fill"></div></div>
+      </div>
+    </div>
+    <div class="video-player">
+      🎮
+      <div class="play-overlay">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+    </div>
+    <div class="player-controls">
+      <div class="streamer-info-row">
+        <div class="avatar av1" style="width:38px;height:38px;font-size:16px">N</div>
+        <div class="streamer-text">
+          <div class="name">NinjaStreams</div>
+          <div class="game">Fortnite · 42.5K viewers</div>
+        </div>
+      </div>
+      <button class="follow-btn">+ Seguir</button>
+    </div>
+    <div class="chat-area">
+      <div class="chat-msg"><span class="chat-name chat-n1">ProGamer99:</span><span class="chat-text">LUL eso estuvo increíble!</span></div>
+      <div class="chat-msg"><span class="chat-name chat-n2">StreamFan:</span><span class="chat-text">PogChamp PogChamp PogChamp</span></div>
+      <div class="chat-msg"><span class="chat-name chat-n3">TwitchUser:</span><span class="chat-text">bro como hiciste eso??</span></div>
+      <div class="chat-msg"><span class="chat-name chat-n4">Gaming4Life:</span><span class="chat-text">OMEGALUL ese movimiento fue brutal</span></div>
+      <div class="chat-msg"><span class="chat-name chat-n5">Espectador123:</span><span class="chat-text">Raiddddd!!! venimos del stream de xQc</span></div>
+      <div class="chat-msg"><span class="chat-name chat-n1">ProGamer99:</span><span class="chat-text">gg wp no re 👏👏</span></div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" placeholder="Enviar un mensaje..." />
+      <div class="send-btn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Inicio</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span>Buscar</span>
+      </div>
+      <div class="nav-btn active">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        <span>Seguidos</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Perfil</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 3: PROFILE -->
+<div>
+  <div class="label">Pantalla 3 · Mi Perfil</div>
+  <div class="phone profile-screen">
+    <div class="notch"><div class="notch-pill"></div></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="statusbar-icons">
+        <span>WiFi</span>
+        <div class="bat"><div class="bat-fill"></div></div>
+      </div>
+    </div>
+    <div class="profile-header">
+      <div class="profile-avatar">G</div>
+      <div class="profile-name">GamerPro2025</div>
+      <div class="profile-tag">@gamerpro2025 · Nivel 42</div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num">248</div><div class="stat-lbl">Siguiendo</div></div>
+        <div class="stat"><div class="stat-num">1.2K</div><div class="stat-lbl">Seguidores</div></div>
+        <div class="stat"><div class="stat-num">890</div><div class="stat-lbl">Vistos</div></div>
+      </div>
+    </div>
+    <div class="profile-content">
+      <div class="menu-item">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Canales seguidos</div>
+          <div class="menu-sub">248 streamers activos</div>
+        </div>
+        <div class="chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Mis clips favoritos</div>
+          <div class="menu-sub">34 clips guardados</div>
+        </div>
+        <div class="chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Configuración</div>
+          <div class="menu-sub">Notificaciones, privacidad</div>
+        </div>
+        <div class="chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Cerrar sesión</div>
+          <div class="menu-sub">gamerpro2025</div>
+        </div>
+        <div class="chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Inicio</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span>Buscar</span>
+      </div>
+      <div class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        <span>Seguidos</span>
+      </div>
+      <div class="nav-btn active">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Perfil</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div class="instructions">
+  <div class="inst-title">📋 Guía Flutter paso a paso</div>
+  <div class="inst-sub">Para implementar en VS Code · Sin experiencia previa</div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Instala Flutter</div>
+      <div class="step-desc">Ve a <strong style="color:#bf94ff">flutter.dev</strong>, descarga Flutter SDK para tu sistema operativo (Windows/Mac/Linux) y descomprime en una carpeta sin espacios, ej: <code style="color:#bf94ff">C:\flutter</code></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Instala VS Code + extensión</div>
+      <div class="step-desc">Abre VS Code → ve a Extensiones (Ctrl+Shift+X) → busca <strong style="color:#bf94ff">"Flutter"</strong> → instala la oficial de Dart Code. También instala la extensión <strong style="color:#bf94ff">"Dart"</strong>.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Crea el proyecto</div>
+      <div class="step-desc">Abre la terminal en VS Code (Ctrl+`) y escribe:</div>
+      <div class="step-code">flutter create twitch_app<br>cd twitch_app<br>code .</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">Reemplaza el código principal</div>
+      <div class="step-desc">Abre el archivo <strong style="color:#bf94ff">lib/main.dart</strong> y borra TODO su contenido. Pega el código Flutter que te daré a continuación.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">Ejecuta la app</div>
+      <div class="step-desc">Con un emulador Android/iOS abierto o tu teléfono conectado, escribe en la terminal:</div>
+      <div class="step-code">flutter run</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div style="font-size:11px;color:#adadb8;line-height:1.6">
+    💡 <strong style="color:#fff">Tip:</strong> Si no tienes emulador, instala <strong style="color:#bf94ff">Android Studio</strong>, crea un AVD (virtual device) y luego vuelve a VS Code para ejecutar la app.
+  </div>
+</div>
+
+</body>
+</html>
