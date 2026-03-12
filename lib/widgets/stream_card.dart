@@ -31,11 +31,30 @@ class StreamCard extends StatelessWidget {
                 color: const Color(0xFF30303D),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Center(
-                child: Text(
-                  thumbnail,
-                  style: const TextStyle(fontSize: 60),
-                ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: thumbnail.startsWith('http')
+                    ? Image.network(
+                        thumbnail,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(Icons.live_tv, size: 60, color: Color(0xFF72767D)),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          thumbnail,
+                          style: const TextStyle(fontSize: 60),
+                        ),
+                      ),
               ),
             ),
             Positioned(
